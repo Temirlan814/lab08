@@ -1,42 +1,38 @@
 package com.example.lab08
-
+// RandomCharacterService.kt
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
-import kotlinx.coroutines.*
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.Random
 
 class RandomCharacterService : Service() {
     private val scope = CoroutineScope(Dispatchers.Default + Job())
-    private var isRunning = false
-    private val chars = ('A'..'Z').toList()
+    private val localBroadcastManager by lazy { LocalBroadcastManager.getInstance(this) }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        isRunning = true
         scope.launch {
-            while (isRunning) {
+            while (true) {
                 delay(1000)
-                val char = chars.random()
-                sendBroadcast(char)
-                Log.d("Service", "Generated: $char")
+                val digit = Random().nextInt(10)
+                localBroadcastManager.sendBroadcast(
+                    Intent("RANDOM_DIGIT_EVENT").apply { putExtra("digit", digit) }
+                )
             }
         }
         return START_STICKY
     }
 
-    private fun sendBroadcast(char: Char) {
-        Intent().apply {
-            action = "RANDOM_CHAR_ACTION"
-            putExtra("randomCharacter", char)
-            sendBroadcast(this)
-        }
-    }
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        super.onDestroy()
-        isRunning = false
         scope.cancel()
+        super.onDestroy()
     }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 }

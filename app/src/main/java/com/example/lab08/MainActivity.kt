@@ -1,62 +1,50 @@
+package com.example.lab08
+
+// MainActivity.kt
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
+import android.view.View
 import android.widget.EditText
-import com.example.lab08.R
-import com.example.lab08.RandomCharacterService
+import androidx.appcompat.app.AppCompatActivity
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var editText: EditText
-    private lateinit var serviceIntent: Intent
-    private val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.getCharExtra("randomCharacter", '?')?.let {
-                editText.setText(it.toString())
+    private lateinit var randomCharacterEditText: EditText
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            intent.getIntExtra("digit", -1).takeIf { it != -1 }?.let { digit ->
+                randomCharacterEditText.append(digit.toString())
             }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_background)
+        setContentView(R.layout.activity_main)
+        randomCharacterEditText = findViewById(R.id.editText_randomCharacter)
+    }
 
-        editText = findViewById(R.id.editText_random)
-        serviceIntent = Intent(this, RandomCharacterService::class.java)
-
-        findViewById<Button>(R.id.btn_start).setOnClickListener {
-            startService(serviceIntent)
-        }
-
-        findViewById<Button>(R.id.btn_stop).setOnClickListener {
-            stopService(serviceIntent)
-            editText.text.clear()
+    fun onClick(view: View) {
+        when (view.id) {
+            R.id.button_start -> startService(Intent(this, RandomCharacterService::class.java))
+            R.id.button_end -> {
+                stopService(Intent(this, RandomCharacterService::class.java))
+                randomCharacterEditText.text.clear()
+            }
         }
     }
 
     override fun onStart() {
         super.onStart()
-        val intentFilter = IntentFilter("RANDOM_CHAR_ACTION")
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Для Android 13+ (API 33+)
-            registerReceiver(
-                receiver,
-                intentFilter,
-                RECEIVER_NOT_EXPORTED // Приемник доступен только внутри приложения
-            )
-        } else {
-            // Для старых версий Android
-            registerReceiver(receiver, intentFilter)
-        }
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(broadcastReceiver, IntentFilter("RANDOM_DIGIT_EVENT"))
     }
 
     override fun onStop() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
         super.onStop()
-        unregisterReceiver(receiver)
     }
 }
