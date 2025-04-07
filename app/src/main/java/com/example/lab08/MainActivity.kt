@@ -1,6 +1,5 @@
 package com.example.lab08
 
-// MainActivity.kt
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,42 +8,61 @@ import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var randomCharacterEditText: EditText
-    private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            intent.getIntExtra("digit", -1).takeIf { it != -1 }?.let { digit ->
-                randomCharacterEditText.append(digit.toString())
-            }
-        }
-    }
+    private lateinit var broadcastReceiver: BroadcastReceiver
+    private lateinit var serviceIntent: Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         randomCharacterEditText = findViewById(R.id.editText_randomCharacter)
+        broadcastReceiver = MyBroadcastReceiver()
+        serviceIntent = Intent(applicationContext, RandomCharacterService::class.java)
     }
 
     fun onClick(view: View) {
         when (view.id) {
-            R.id.button_start -> startService(Intent(this, RandomCharacterService::class.java))
-            R.id.button_end -> {
-                stopService(Intent(this, RandomCharacterService::class.java))
-                randomCharacterEditText.text.clear()
+            R.id.button_start -> {
+                startService(serviceIntent)
+            }
+            R.id.button_stop -> {
+                stopService(serviceIntent)
+                randomCharacterEditText.setText("")
             }
         }
     }
 
     override fun onStart() {
         super.onStart()
-        LocalBroadcastManager.getInstance(this)
-            .registerReceiver(broadcastReceiver, IntentFilter("RANDOM_DIGIT_EVENT"))
+        val intentFilter = IntentFilter().apply {
+            addAction("my.custom.action.tag.lab6")
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            // Android 12 (API 31) or higher
+            registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            // Older Android versions
+            registerReceiver(broadcastReceiver, intentFilter)
+        }
     }
 
     override fun onStop() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
         super.onStop()
+        unregisterReceiver(broadcastReceiver)
+    }
+
+    inner class MyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            try {
+                val data = intent.getCharExtra("randomCharacter", '?')
+                randomCharacterEditText.setText(data.toString())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
