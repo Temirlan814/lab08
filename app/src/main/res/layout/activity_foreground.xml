@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Исправлены ID кнопок -->
+    <Button
+        android:id="@+id/btn_start_music"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start Music"/>
+
+    <Button
+        android:id="@+id/btn_stop_music"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stop Music"
+        android:layout_marginTop="8dp"/>
+
+    <Button
+        android:id="@+id/btn_next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Next Activity"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>

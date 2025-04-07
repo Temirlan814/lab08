@@ -1,13 +1,14 @@
-package com.example.lab08
-
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import com.example.lab08.R
+import com.example.lab08.RandomCharacterService
 
 class MainActivity : AppCompatActivity() {
     private lateinit var editText: EditText
@@ -39,7 +40,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        registerReceiver(receiver, IntentFilter("RANDOM_CHAR_ACTION"))
+        val intentFilter = IntentFilter("RANDOM_CHAR_ACTION")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Для Android 13+ (API 33+)
+            registerReceiver(
+                receiver,
+                intentFilter,
+                RECEIVER_NOT_EXPORTED // Приемник доступен только внутри приложения
+            )
+        } else {
+            // Для старых версий Android
+            registerReceiver(receiver, intentFilter)
+        }
     }
 
     override fun onStop() {
