@@ -8,12 +8,12 @@ import android.widget.Toast
 import java.util.Random
 
 class RandomCharacterService : Service() {
-    private var isRandomGeneratorOn: Boolean = false
+    private var isRandomGeneratorOn = false
     private val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
     private val TAG = "RandomCharacterService"
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Toast.makeText(applicationContext, "Service Started", Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext, "Background Service Started", Toast.LENGTH_SHORT).show()
         Log.i(TAG, "Service started...")
         Log.i(TAG, "In OnStartCommand Thread ID is ${Thread.currentThread().id}")
         isRandomGeneratorOn = true
@@ -36,10 +36,9 @@ class RandomCharacterService : Service() {
                     val myRandomCharacter = alphabet[randomIdx]
                     Log.i(TAG, "Thread ID is ${Thread.currentThread().id}, Random Character is $myRandomCharacter")
 
-                    val broadcastIntent = Intent().apply {
-                        action = "my.custom.action.tag.lab6"
-                        putExtra("randomCharacter", myRandomCharacter)
-                    }
+                    val broadcastIntent = Intent()
+                    broadcastIntent.action = "my.custom.action.tag.lab08"
+                    broadcastIntent.putExtra("randomCharacter", myRandomCharacter)
                     sendBroadcast(broadcastIntent)
                 }
             } catch (e: InterruptedException) {
@@ -55,7 +54,7 @@ class RandomCharacterService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         stopRandomGenerator()
-        Toast.makeText(applicationContext, "Service Stopped", Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext, "Background Service Stopped", Toast.LENGTH_SHORT).show()
         Log.i(TAG, "Service Destroyed...")
     }
 
